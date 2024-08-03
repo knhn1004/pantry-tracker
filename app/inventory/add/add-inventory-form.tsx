@@ -46,7 +46,7 @@ type UnitType = {
 	name: string;
 };
 
-export default function AddInventory({
+export default function AddInventoryForm({
 	items,
 	locations,
 	units,
