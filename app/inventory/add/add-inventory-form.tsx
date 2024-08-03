@@ -24,12 +24,11 @@ import { Input } from '@/components/ui/input';
 import { formSchema, type FormData } from './add-inventory-form-schema';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Tables } from '@/database.types';
 
 interface IAddInventory {
-	items: Tables<'items'>[];
-	locations: Tables<'locations'>[];
-	units: Tables<'units'>[];
+	items: { id: string; name: string }[];
+	locations: { id: string; name: string }[];
+	units: { id: string; name: string }[];
 }
 
 export default function AddInventoryForm({
