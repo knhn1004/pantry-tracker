@@ -8,7 +8,6 @@ import { useUser } from '@clerk/nextjs';
 import {
 	Form,
 	FormControl,
-	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -31,7 +30,12 @@ const formSchema = z
 			.string()
 			.min(2, 'Item name must be at least 2 characters')
 			.optional(),
-		quantity: z.number().min(1, 'Quantity must be at least 1'),
+		quantity: z.number().min(0.01, 'Quantity must be greater than 0'),
+		unitId: z.string().optional(),
+		newUnitName: z
+			.string()
+			.min(1, 'Unit name must be at least 1 character')
+			.optional(),
 		expirationDate: z.string().optional(),
 		locationId: z.string().optional(),
 		newLocationName: z
@@ -56,6 +60,14 @@ const formSchema = z
 				'Either select an existing location or provide a new location name',
 			path: ['locationId', 'newLocationName'],
 		}
+	)
+	.refine(
+		data =>
+			(data.unitId && !data.newUnitName) || (!data.unitId && data.newUnitName),
+		{
+			message: 'Either select an existing unit or provide a new unit name',
+			path: ['unitId', 'newUnitName'],
+		}
 	);
 
 type FormData = z.infer<typeof formSchema>;
@@ -65,8 +77,10 @@ export default function AddInventory() {
 	const [locations, setLocations] = useState<{ id: string; name: string }[]>(
 		[]
 	);
+	const [units, setUnits] = useState<{ id: string; name: string }[]>([]);
 	const [isNewItem, setIsNewItem] = useState(false);
 	const [isNewLocation, setIsNewLocation] = useState(false);
+	const [isNewUnit, setIsNewUnit] = useState(false);
 	const { user } = useUser();
 
 	const form = useForm<FormData>({
@@ -81,7 +95,7 @@ export default function AddInventory() {
 	} = form;
 
 	useEffect(() => {
-		const fetchItemsAndLocations = async () => {
+		const fetchData = async () => {
 			const { data: itemsData, error: itemsError } = await supabaseClient
 				.from('items')
 				.select('id, name');
@@ -93,8 +107,14 @@ export default function AddInventory() {
 			if (locationsData) setLocations(locationsData);
 			if (locationsError)
 				console.error('Error fetching locations:', locationsError);
+
+			const { data: unitsData, error: unitsError } = await supabaseClient
+				.from('units')
+				.select('id, name');
+			if (unitsData) setUnits(unitsData);
+			if (unitsError) console.error('Error fetching units:', unitsError);
 		};
-		fetchItemsAndLocations();
+		fetchData();
 	}, [supabaseClient]);
 
 	const selectedItemId = watch('itemId');
@@ -151,53 +171,59 @@ export default function AddInventory() {
 	return (
 		<Form {...form}>
 			<form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-				{!isNewItem ? (
-					<FormField
-						control={control}
-						name="itemId"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Select Item</FormLabel>
-								<Select
-									onValueChange={field.onChange}
-									defaultValue={field.value}
-								>
+				<div className="flex items-center gap-4">
+					{!isNewItem ? (
+						<FormField
+							control={control}
+							name="itemId"
+							render={({ field }) => (
+								<FormItem className="flex-grow">
+									<FormLabel>Select Item</FormLabel>
+									<Select
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+									>
+										<FormControl>
+											<SelectTrigger>
+												<SelectValue placeholder="Select an item" />
+											</SelectTrigger>
+										</FormControl>
+										<SelectContent>
+											{items.map(item => (
+												<SelectItem key={item.id} value={item.id}>
+													{item.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					) : (
+						<FormField
+							control={control}
+							name="newItemName"
+							render={({ field }) => (
+								<FormItem className="flex-grow">
+									<FormLabel>New Item Name</FormLabel>
 									<FormControl>
-										<SelectTrigger>
-											<SelectValue placeholder="Select an item" />
-										</SelectTrigger>
+										<Input placeholder="Enter new item name" {...field} />
 									</FormControl>
-									<SelectContent>
-										{items.map(item => (
-											<SelectItem key={item.id} value={item.id}>
-												{item.name}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-				) : (
-					<FormField
-						control={control}
-						name="newItemName"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>New Item Name</FormLabel>
-								<FormControl>
-									<Input placeholder="Enter new item name" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-				)}
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					)}
 
-				<Button type="button" onClick={() => setIsNewItem(!isNewItem)}>
-					{isNewItem ? 'Select existing item' : 'Add new item'}
-				</Button>
+					<Button
+						type="button"
+						onClick={() => setIsNewItem(!isNewItem)}
+						className="self-end"
+					>
+						{isNewItem ? 'Select existing item' : 'Add new item'}
+					</Button>
+				</div>
 
 				<FormField
 					control={control}
@@ -216,6 +242,59 @@ export default function AddInventory() {
 						</FormItem>
 					)}
 				/>
+				<div className="flex items-center gap-4">
+					{!isNewUnit ? (
+						<FormField
+							control={control}
+							name="unitId"
+							render={({ field }) => (
+								<FormItem className="flex-grow">
+									<FormLabel>Select Unit</FormLabel>
+									<Select
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+									>
+										<FormControl>
+											<SelectTrigger>
+												<SelectValue placeholder="Select a unit" />
+											</SelectTrigger>
+										</FormControl>
+										<SelectContent>
+											{units.map(unit => (
+												<SelectItem key={unit.id} value={unit.id}>
+													{unit.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					) : (
+						<FormField
+							control={control}
+							name="newUnitName"
+							render={({ field }) => (
+								<FormItem className="flex-grow">
+									<FormLabel>New Unit Name</FormLabel>
+									<FormControl>
+										<Input placeholder="Enter new unit name" {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					)}
+
+					<Button
+						type="button"
+						onClick={() => setIsNewUnit(!isNewUnit)}
+						className="self-end"
+					>
+						{isNewUnit ? 'Select existing unit' : 'Add new unit'}
+					</Button>
+				</div>
 
 				<FormField
 					control={control}
@@ -230,53 +309,59 @@ export default function AddInventory() {
 						</FormItem>
 					)}
 				/>
-				{!isNewLocation ? (
-					<FormField
-						control={control}
-						name="locationId"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Select Location</FormLabel>
-								<Select
-									onValueChange={field.onChange}
-									defaultValue={field.value}
-								>
+				<div className="flex items-center gap-4">
+					{!isNewLocation ? (
+						<FormField
+							control={control}
+							name="locationId"
+							render={({ field }) => (
+								<FormItem className="flex-grow">
+									<FormLabel>Select Location</FormLabel>
+									<Select
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+									>
+										<FormControl>
+											<SelectTrigger>
+												<SelectValue placeholder="Select a location" />
+											</SelectTrigger>
+										</FormControl>
+										<SelectContent>
+											{locations.map(location => (
+												<SelectItem key={location.id} value={location.id}>
+													{location.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					) : (
+						<FormField
+							control={control}
+							name="newLocationName"
+							render={({ field }) => (
+								<FormItem className="flex-grow">
+									<FormLabel>New Location Name</FormLabel>
 									<FormControl>
-										<SelectTrigger>
-											<SelectValue placeholder="Select a location" />
-										</SelectTrigger>
+										<Input placeholder="Enter new location name" {...field} />
 									</FormControl>
-									<SelectContent>
-										{locations.map(location => (
-											<SelectItem key={location.id} value={location.id}>
-												{location.name}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-				) : (
-					<FormField
-						control={control}
-						name="newLocationName"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>New Location Name</FormLabel>
-								<FormControl>
-									<Input placeholder="Enter new location name" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-				)}
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					)}
 
-				<Button type="button" onClick={() => setIsNewLocation(!isNewLocation)}>
-					{isNewLocation ? 'Select existing location' : 'Add new location'}
-				</Button>
+					<Button
+						type="button"
+						onClick={() => setIsNewLocation(!isNewLocation)}
+						className="self-end"
+					>
+						{isNewLocation ? 'Select existing location' : 'Add new location'}
+					</Button>
+				</div>
 
 				<Button type="submit">Add to Inventory</Button>
 			</form>
