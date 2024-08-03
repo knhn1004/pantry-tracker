@@ -1,10 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import supabaseClient from '@/lib/supabase/client';
-import { useUser } from '@clerk/nextjs';
+import {
+	fetchItems,
+	fetchLocations,
+	fetchUnits,
+	addInventoryItem,
+} from '@/lib/actions/inventory';
 import {
 	Form,
 	FormControl,
@@ -22,55 +25,7 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-
-const formSchema = z
-	.object({
-		itemId: z.string().optional(),
-		newItemName: z
-			.string()
-			.min(2, 'Item name must be at least 2 characters')
-			.optional(),
-		quantity: z.number().min(0.01, 'Quantity must be greater than 0'),
-		unitId: z.string().optional(),
-		newUnitName: z
-			.string()
-			.min(1, 'Unit name must be at least 1 character')
-			.optional(),
-		expirationDate: z.string().optional(),
-		locationId: z.string().optional(),
-		newLocationName: z
-			.string()
-			.min(2, 'Location name must be at least 2 characters')
-			.optional(),
-	})
-	.refine(
-		data =>
-			(data.itemId && !data.newItemName) || (!data.itemId && data.newItemName),
-		{
-			message: 'Either select an existing item or provide a new item name',
-			path: ['itemId', 'newItemName'],
-		}
-	)
-	.refine(
-		data =>
-			(data.locationId && !data.newLocationName) ||
-			(!data.locationId && data.newLocationName),
-		{
-			message:
-				'Either select an existing location or provide a new location name',
-			path: ['locationId', 'newLocationName'],
-		}
-	)
-	.refine(
-		data =>
-			(data.unitId && !data.newUnitName) || (!data.unitId && data.newUnitName),
-		{
-			message: 'Either select an existing unit or provide a new unit name',
-			path: ['unitId', 'newUnitName'],
-		}
-	);
-
-type FormData = z.infer<typeof formSchema>;
+import { formSchema, type FormData } from './add-inventory-form';
 
 export default function AddInventory() {
 	const [items, setItems] = useState<{ id: string; name: string }[]>([]);
@@ -81,7 +36,6 @@ export default function AddInventory() {
 	const [isNewItem, setIsNewItem] = useState(false);
 	const [isNewLocation, setIsNewLocation] = useState(false);
 	const [isNewUnit, setIsNewUnit] = useState(false);
-	const { user } = useUser();
 
 	const form = useForm<FormData>({
 		resolver: zodResolver(formSchema),
@@ -95,76 +49,38 @@ export default function AddInventory() {
 	} = form;
 
 	useEffect(() => {
-		const fetchData = async () => {
-			const { data: itemsData, error: itemsError } = await supabaseClient
-				.from('items')
-				.select('id, name');
-			if (itemsData) setItems(itemsData);
-			if (itemsError) console.error('Error fetching items:', itemsError);
-
-			const { data: locationsData, error: locationsError } =
-				await supabaseClient.from('locations').select('id, name');
-			if (locationsData) setLocations(locationsData);
-			if (locationsError)
-				console.error('Error fetching locations:', locationsError);
-
-			const { data: unitsData, error: unitsError } = await supabaseClient
-				.from('units')
-				.select('id, name');
-			if (unitsData) setUnits(unitsData);
-			if (unitsError) console.error('Error fetching units:', unitsError);
+		const loadData = async () => {
+			try {
+				const [itemsData, locationsData, unitsData] = await Promise.all([
+					fetchItems(),
+					fetchLocations(),
+					fetchUnits(),
+				]);
+				setItems(itemsData);
+				setLocations(locationsData);
+				setUnits(unitsData);
+			} catch (error) {
+				console.error('Error fetching data:', error);
+			}
 		};
-		fetchData();
-	}, [supabaseClient]);
-
-	const selectedItemId = watch('itemId');
-	const selectedLocationId = watch('locationId');
+		loadData();
+	}, []);
 
 	const onSubmit = async (data: FormData) => {
-		let itemId = data.itemId;
-		let locationId = data.locationId;
-
-		if (isNewItem && data.newItemName) {
-			const { data: newItem, error } = await supabaseClient
-				.from('items')
-				.insert({ name: data.newItemName, user_id: user!.id })
-				.select('id')
-				.single();
-
-			if (error) {
-				console.error('Error adding new item:', error);
-				return;
+		const formData = new FormData();
+		Object.entries(data).forEach(([key, value]) => {
+			if (value !== undefined && value !== null) {
+				formData.append(key, value.toString());
 			}
-			itemId = newItem.id;
-		}
-
-		if (isNewLocation && data.newLocationName) {
-			const { data: newLocation, error } = await supabaseClient
-				.from('locations')
-				.insert({ name: data.newLocationName, user_id: user!.id })
-				.select('id')
-				.single();
-
-			if (error) {
-				console.error('Error adding new location:', error);
-				return;
-			}
-			locationId = newLocation.id;
-		}
-
-		const { error } = await supabaseClient.from('inventory').insert({
-			item_id: itemId,
-			quantity: data.quantity,
-			expiration_date: data.expirationDate || null,
-			location_id: locationId,
-			user_id: user!.id,
 		});
 
-		if (error) {
-			console.error('Error adding to inventory:', error);
-		} else {
-			console.log('Successfully added to inventory');
-			// Reset form or navigate away
+		try {
+			await addInventoryItem(formData);
+			// Reset form or show success message
+			form.reset();
+		} catch (error) {
+			console.error('Error adding inventory item:', error);
+			// Show error message to user
 		}
 	};
 
@@ -363,7 +279,9 @@ export default function AddInventory() {
 					</Button>
 				</div>
 
-				<Button type="submit">Add to Inventory</Button>
+				<Button type="submit" className="w-full">
+					Add to Inventory
+				</Button>
 			</form>
 		</Form>
 	);
