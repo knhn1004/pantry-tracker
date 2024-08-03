@@ -213,7 +213,7 @@ export default function InventoryTable({ data }: { data: InventoryItem[] }) {
 
 function getExpirationBadgeVariant(
 	date: string
-): 'default' | 'outline' | 'destructive' {
+): 'outline' | 'secondary' | 'destructive' {
 	const expirationDate = new Date(date);
 	const today = new Date();
 	const diffTime = expirationDate.getTime() - today.getTime();
@@ -222,7 +222,7 @@ function getExpirationBadgeVariant(
 	if (diffDays <= 0) {
 		return 'destructive';
 	} else if (diffDays <= 7) {
-		return 'default';
+		return 'secondary';
 	} else {
 		return 'outline';
 	}
