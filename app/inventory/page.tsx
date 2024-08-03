@@ -1,19 +1,22 @@
-import { Button } from '@/components/ui/button';
 import { fetchItemsWithInventory } from '@/lib/actions/items';
-import Link from 'next/link';
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import InventoryTable from './inventory-table'; // This will be our client component
 
 export default async function Inventory() {
 	const itemsWithInventory = await fetchItemsWithInventory();
+
+	const data = itemsWithInventory.flatMap(item =>
+		item.inventory.map(inv => ({
+			id: inv.id,
+			itemName: item.name,
+			quantity: inv.quantity,
+			unit: inv.unit?.name || '',
+			location: inv.location?.name || '',
+			expirationDate: inv.expiration_date || '',
+		}))
+	);
 
 	return (
 		<div className="container mx-auto p-4">
@@ -28,57 +31,7 @@ export default async function Inventory() {
 				</CardContent>
 			</Card>
 
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead>Item Name</TableHead>
-						<TableHead>Quantity</TableHead>
-						<TableHead>Unit</TableHead>
-						<TableHead>Location</TableHead>
-						<TableHead>Expiration Date</TableHead>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{itemsWithInventory.map(item =>
-						item.inventory.map(inv => (
-							<TableRow key={inv.id}>
-								<TableCell>{item.name}</TableCell>
-								<TableCell>{inv.quantity}</TableCell>
-								<TableCell>{inv.unit?.name || '-'}</TableCell>
-								<TableCell>{inv.location?.name || '-'}</TableCell>
-								<TableCell>
-									{inv.expiration_date ? (
-										<Badge
-											variant={getExpirationBadgeVariant(inv.expiration_date)}
-										>
-											{new Date(inv.expiration_date).toLocaleDateString()}
-										</Badge>
-									) : (
-										<Badge variant="outline">N/A</Badge>
-									)}
-								</TableCell>
-							</TableRow>
-						))
-					)}
-				</TableBody>
-			</Table>
+			<InventoryTable data={data} />
 		</div>
 	);
-}
-
-function getExpirationBadgeVariant(
-	date: string
-): 'default' | 'outline' | 'destructive' {
-	const expirationDate = new Date(date);
-	const today = new Date();
-	const diffTime = expirationDate.getTime() - today.getTime();
-	const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-	if (diffDays <= 0) {
-		return 'destructive';
-	} else if (diffDays <= 7) {
-		return 'default';
-	} else {
-		return 'outline';
-	}
 }
