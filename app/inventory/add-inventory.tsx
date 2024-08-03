@@ -3,51 +3,111 @@ import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import supabaseClient from '@/lib/supabase/client';
+import { useUser } from '@clerk/nextjs';
+import {
+	Form,
+	FormControl,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 
-const formSchema = z.object({
-	itemId: z.string().optional(),
-	newItemName: z.string().optional(),
-	quantity: z.number().min(1, 'Quantity must be at least 1'),
-	expirationDate: z.string().optional(),
-	location: z.string().optional(),
-});
+const formSchema = z
+	.object({
+		itemId: z.string().optional(),
+		newItemName: z
+			.string()
+			.min(2, 'Item name must be at least 2 characters')
+			.optional(),
+		quantity: z.number().min(1, 'Quantity must be at least 1'),
+		expirationDate: z.string().optional(),
+		locationId: z.string().optional(),
+		newLocationName: z
+			.string()
+			.min(2, 'Location name must be at least 2 characters')
+			.optional(),
+	})
+	.refine(
+		data =>
+			(data.itemId && !data.newItemName) || (!data.itemId && data.newItemName),
+		{
+			message: 'Either select an existing item or provide a new item name',
+			path: ['itemId', 'newItemName'],
+		}
+	)
+	.refine(
+		data =>
+			(data.locationId && !data.newLocationName) ||
+			(!data.locationId && data.newLocationName),
+		{
+			message:
+				'Either select an existing location or provide a new location name',
+			path: ['locationId', 'newLocationName'],
+		}
+	);
 
 type FormData = z.infer<typeof formSchema>;
 
 export default function AddInventory() {
 	const [items, setItems] = useState<{ id: string; name: string }[]>([]);
+	const [locations, setLocations] = useState<{ id: string; name: string }[]>(
+		[]
+	);
 	const [isNewItem, setIsNewItem] = useState(false);
-	const supabase = createClientComponentClient();
+	const [isNewLocation, setIsNewLocation] = useState(false);
+	const { user } = useUser();
 
+	const form = useForm<FormData>({
+		resolver: zodResolver(formSchema),
+	});
 	const {
 		register,
 		handleSubmit,
 		watch,
 		formState: { errors },
-	} = useForm<FormData>({
-		resolver: zodResolver(formSchema),
-	});
+		control,
+	} = form;
 
 	useEffect(() => {
-		const fetchItems = async () => {
-			const { data, error } = await supabase.from('items').select('id, name');
-			if (data) setItems(data);
-			if (error) console.error('Error fetching items:', error);
+		const fetchItemsAndLocations = async () => {
+			const { data: itemsData, error: itemsError } = await supabaseClient
+				.from('items')
+				.select('id, name');
+			if (itemsData) setItems(itemsData);
+			if (itemsError) console.error('Error fetching items:', itemsError);
+
+			const { data: locationsData, error: locationsError } =
+				await supabaseClient.from('locations').select('id, name');
+			if (locationsData) setLocations(locationsData);
+			if (locationsError)
+				console.error('Error fetching locations:', locationsError);
 		};
-		fetchItems();
-	}, [supabase]);
+		fetchItemsAndLocations();
+	}, [supabaseClient]);
 
 	const selectedItemId = watch('itemId');
+	const selectedLocationId = watch('locationId');
 
 	const onSubmit = async (data: FormData) => {
 		let itemId = data.itemId;
+		let locationId = data.locationId;
 
 		if (isNewItem && data.newItemName) {
-			// Add new item to the items table
-			const { data: newItem, error } = await supabase
+			const { data: newItem, error } = await supabaseClient
 				.from('items')
-				.insert({ name: data.newItemName })
+				.insert({ name: data.newItemName, user_id: user!.id })
 				.select('id')
 				.single();
 
@@ -58,12 +118,26 @@ export default function AddInventory() {
 			itemId = newItem.id;
 		}
 
-		// Add to inventory
-		const { error } = await supabase.from('inventories').insert({
+		if (isNewLocation && data.newLocationName) {
+			const { data: newLocation, error } = await supabaseClient
+				.from('locations')
+				.insert({ name: data.newLocationName, user_id: user!.id })
+				.select('id')
+				.single();
+
+			if (error) {
+				console.error('Error adding new location:', error);
+				return;
+			}
+			locationId = newLocation.id;
+		}
+
+		const { error } = await supabaseClient.from('inventory').insert({
 			item_id: itemId,
 			quantity: data.quantity,
 			expiration_date: data.expirationDate || null,
-			location: data.location || null,
+			location_id: locationId,
+			user_id: user!.id,
 		});
 
 		if (error) {
@@ -75,38 +149,137 @@ export default function AddInventory() {
 	};
 
 	return (
-		<div>
-			<h1>Add Inventory</h1>
-			<form onSubmit={handleSubmit(onSubmit)}>
+		<Form {...form}>
+			<form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
 				{!isNewItem ? (
-					<select {...register('itemId')}>
-						<option value="">Select an item</option>
-						{items.map(item => (
-							<option key={item.id} value={item.id}>
-								{item.name}
-							</option>
-						))}
-					</select>
+					<FormField
+						control={control}
+						name="itemId"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Select Item</FormLabel>
+								<Select
+									onValueChange={field.onChange}
+									defaultValue={field.value}
+								>
+									<FormControl>
+										<SelectTrigger>
+											<SelectValue placeholder="Select an item" />
+										</SelectTrigger>
+									</FormControl>
+									<SelectContent>
+										{items.map(item => (
+											<SelectItem key={item.id} value={item.id}>
+												{item.name}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 				) : (
-					<input {...register('newItemName')} placeholder="New item name" />
+					<FormField
+						control={control}
+						name="newItemName"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>New Item Name</FormLabel>
+								<FormControl>
+									<Input placeholder="Enter new item name" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 				)}
-				<button type="button" onClick={() => setIsNewItem(!isNewItem)}>
+
+				<Button type="button" onClick={() => setIsNewItem(!isNewItem)}>
 					{isNewItem ? 'Select existing item' : 'Add new item'}
-				</button>
-				<input
-					{...register('quantity', { valueAsNumber: true })}
-					placeholder="Quantity"
-					type="number"
+				</Button>
+
+				<FormField
+					control={control}
+					name="quantity"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Quantity</FormLabel>
+							<FormControl>
+								<Input
+									type="number"
+									{...field}
+									onChange={e => field.onChange(+e.target.value)}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
 				/>
-				{errors.quantity && <span>{errors.quantity.message}</span>}
-				<input
-					{...register('expirationDate')}
-					placeholder="Expiration Date"
-					type="date"
+
+				<FormField
+					control={control}
+					name="expirationDate"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Expiration Date</FormLabel>
+							<FormControl>
+								<Input type="date" {...field} />
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
 				/>
-				<input {...register('location')} placeholder="Location" />
-				<button type="submit">Add to Inventory</button>
+				{!isNewLocation ? (
+					<FormField
+						control={control}
+						name="locationId"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Select Location</FormLabel>
+								<Select
+									onValueChange={field.onChange}
+									defaultValue={field.value}
+								>
+									<FormControl>
+										<SelectTrigger>
+											<SelectValue placeholder="Select a location" />
+										</SelectTrigger>
+									</FormControl>
+									<SelectContent>
+										{locations.map(location => (
+											<SelectItem key={location.id} value={location.id}>
+												{location.name}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				) : (
+					<FormField
+						control={control}
+						name="newLocationName"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>New Location Name</FormLabel>
+								<FormControl>
+									<Input placeholder="Enter new location name" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				)}
+
+				<Button type="button" onClick={() => setIsNewLocation(!isNewLocation)}>
+					{isNewLocation ? 'Select existing location' : 'Add new location'}
+				</Button>
+
+				<Button type="submit">Add to Inventory</Button>
 			</form>
-		</div>
+		</Form>
 	);
 }
