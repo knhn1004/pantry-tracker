@@ -1,20 +1,16 @@
-import {
-	ClerkProvider,
-	SignInButton,
-	SignedIn,
-	SignedOut,
-	UserButton,
-} from '@clerk/nextjs';
+import { ClerkProvider } from '@clerk/nextjs';
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter as FontSans } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { ThemeProvider } from '@/components/theme-provider';
 
 const fontSans = FontSans({
 	subsets: ['latin'],
 	variable: '--font-sans',
 });
 import './globals.css';
+import Header from '@/components/header';
 
 export const metadata: Metadata = {
 	title: 'Pantry Tracker',
@@ -35,13 +31,10 @@ export default function RootLayout({
 						fontSans.variable
 					)}
 				>
-					<SignedOut>
-						<SignInButton />
-					</SignedOut>
-					<SignedIn>
-						<UserButton />
-					</SignedIn>
-					{children}
+					<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+						<Header />
+						{children}
+					</ThemeProvider>
 				</body>
 			</html>
 		</ClerkProvider>
