@@ -1,10 +1,13 @@
-import AddInventory from './add-inventory';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function Inventory() {
 	return (
 		<div>
 			<h1>Inventory</h1>
-			<AddInventory />
+			<Link href="/inventory/add">
+				<Button>Add New</Button>
+			</Link>
 		</div>
 	);
 }
