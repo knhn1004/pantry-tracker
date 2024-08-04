@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import InventoryTable from './inventory-table'; // This will be our client component
 import { PlusCircle } from 'lucide-react';
+import NewFeatures from './new-features';
 
 export default async function Inventory() {
 	const itemsWithInventory = await fetchItemsWithInventory();
@@ -27,12 +28,17 @@ export default async function Inventory() {
 					<CardTitle className="text-2xl font-bold">Inventory</CardTitle>
 				</CardHeader>
 				<CardContent>
+					<p className="mb-4 text-sm text-muted-foreground">
+						Smart inventory management with AI auto categorization, image
+						recognition, and receipt OCR
+					</p>
 					<Link href="/inventory/add">
 						<Button>
 							<PlusCircle className="mr-2 h-4 w-4" />
 							Add New
 						</Button>
 					</Link>
+					<NewFeatures />
 				</CardContent>
 			</Card>
 
