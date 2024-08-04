@@ -21,7 +21,7 @@ export async function fetchItemsWithInventory() {
 	return data;
 }
 
-export async function useInventoryItem(
+export async function consumeInventoryItem(
 	inventoryId: string,
 	quantityToUse: number
 ) {

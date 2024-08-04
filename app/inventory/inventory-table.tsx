@@ -32,7 +32,7 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronDown, Trash2, Carrot } from 'lucide-react';
 import UseItemDialog from './use-item-dialog';
 import TrashItemDialog from './trash-item-dialog';
-import { useInventoryItem, removeInventoryItem } from '@/lib/actions/items';
+import { consumeInventoryItem, removeInventoryItem } from '@/lib/actions/items';
 
 export type InventoryItem = {
 	id: string;
@@ -145,8 +145,7 @@ export default function InventoryTable({ data }: { data: InventoryItem[] }) {
 	};
 	const handleConfirmUse = async (quantity: number) => {
 		if (selectedItem) {
-			await useInventoryItem(selectedItem.id, quantity);
-			// Implement the actual logic for using an item here
+			await consumeInventoryItem(selectedItem.id, quantity);
 		}
 	};
 

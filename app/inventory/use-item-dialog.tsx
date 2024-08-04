@@ -36,7 +36,7 @@ export default function UseItemDialog({
 		if (isOpen) {
 			setQuantity(maxQuantity);
 		}
-	}, [isOpen]);
+	}, [isOpen, maxQuantity]);
 
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
