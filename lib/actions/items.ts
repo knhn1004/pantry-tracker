@@ -13,7 +13,8 @@ export async function fetchItemsWithInventory() {
                 unit: units (id, name),
                 location: locations (id, name),
                 expiration_date
-            )
+            ),
+			category: categories (id, name)
         `);
 
 	if (error) throw new Error('Failed to fetch items with inventory');

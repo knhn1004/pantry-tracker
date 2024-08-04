@@ -41,6 +41,7 @@ export type InventoryItem = {
 	unit: string;
 	location: string;
 	expirationDate: string;
+	category: string;
 };
 
 export default function InventoryTable({ data }: { data: InventoryItem[] }) {
@@ -58,6 +59,13 @@ export default function InventoryTable({ data }: { data: InventoryItem[] }) {
 			accessorKey: 'itemName',
 			header: 'Item Name',
 			cell: ({ row }) => <div>{row.getValue('itemName')}</div>,
+		},
+		{
+			accessorKey: 'category',
+			header: 'Category',
+			cell: ({ row }) => (
+				<Badge variant="outline">{row.getValue('category') || 'N/A'}</Badge>
+			),
 		},
 		{
 			accessorKey: 'quantity',
