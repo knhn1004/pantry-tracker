@@ -20,7 +20,7 @@ export default async function Inventory() {
 	);
 
 	return (
-		<div className="container mx-auto p-4">
+		<>
 			<Card className="mb-6">
 				<CardHeader>
 					<CardTitle className="text-2xl font-bold">Inventory</CardTitle>
@@ -33,6 +33,6 @@ export default async function Inventory() {
 			</Card>
 
 			<InventoryTable data={data} />
-		</div>
+		</>
 	);
 }

@@ -2,6 +2,7 @@
 
 import { createClerkSupabaseClient } from '@/lib/supabase/server';
 import { auth } from '@clerk/nextjs/server';
+import { revalidatePath } from 'next/cache';
 
 export async function generateRecipeWithAI() {
 	const supabase = await createClerkSupabaseClient();
@@ -14,7 +15,7 @@ export async function generateRecipeWithAI() {
       quantity,
       expiration_date,
       item: items (id, name),
-      unit: units (id, name, abbreviation),
+      unit: units (id, name),
       location: locations (id, name)
     `
 		)
@@ -28,9 +29,10 @@ export async function generateRecipeWithAI() {
 	const formattedInventory = data.map(item => ({
 		id: item.id,
 		itemName: item.item ? item.item.name : '',
-		itemId: item.item ? item.item.id : null, // Store the actual item ID
+		itemId: item.item ? item.item.id : null,
 		quantity: item.quantity,
-		unit: item?.unit?.abbreviation || item?.unit?.name,
+		unitId: item?.unit?.id,
+		unitName: item?.unit?.name,
 		location: item?.location?.name,
 		expirationDate: item.expiration_date,
 	}));
@@ -87,10 +89,11 @@ export async function generateRecipeWithAI() {
 
 		// Store recipe ingredients
 		const recipeIngredients = recipeData.ingredients.map(
-			(ingredient: { id: string | number; quantity: any }) => ({
+			(ingredient: { id: string; quantity: any; unit_id: string }) => ({
 				recipe_id: insertedRecipe.id,
-				item_id: inventoryToItemIdMap[ingredient.id], // Use the mapped item ID
+				item_id: inventoryToItemIdMap[ingredient.id],
 				quantity: ingredient.quantity,
+				unit_id: ingredient.unit_id,
 				created_at: new Date().toISOString(),
 				updated_at: new Date().toISOString(),
 			})
@@ -106,8 +109,51 @@ export async function generateRecipeWithAI() {
 		}
 
 		console.log('Recipe stored successfully:', recipeData);
+		revalidatePath('/recipes');
 		return recipeData;
 	} catch (error) {
 		console.error('Error generating recipe: ', error);
 	}
+}
+
+export async function fetchRecipes() {
+	const supabase = await createClerkSupabaseClient();
+	const { userId } = auth();
+
+	if (!userId) {
+		throw new Error('User not authenticated');
+	}
+
+	const { data, error } = await supabase
+		.from('recipes')
+		.select('*')
+		.order('created_at', { ascending: false });
+
+	if (error) {
+		console.error('Error fetching recipes:', error);
+		throw new Error('Failed to fetch recipes');
+	}
+
+	return data;
+}
+export async function deleteRecipe(recipeId: string) {
+	const supabase = await createClerkSupabaseClient();
+	const { userId } = auth();
+
+	if (!userId) {
+		throw new Error('User not authenticated');
+	}
+
+	const { error } = await supabase
+		.from('recipes')
+		.delete()
+		.eq('id', recipeId)
+		.eq('user_id', userId);
+
+	if (error) {
+		console.error('Error deleting recipe:', error);
+		throw new Error('Failed to delete recipe');
+	}
+
+	revalidatePath('/recipes');
 }

@@ -1,28 +1,13 @@
-'use client';
+import { fetchRecipes } from '@/lib/actions/recipes';
+import RecipeGeneration from './recipe-generation';
+import RecipeTable from './recipe-table';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { generateRecipeWithAI } from '@/lib/actions/recipes';
-import { Wand2 } from 'lucide-react'; // Import the magic wand icon
-
-export default function Recipes() {
+export default async function Recipe() {
+	const recipeData = await fetchRecipes();
 	return (
-		<div className="container mx-auto p-4">
-			<Card className="mb-6">
-				<CardHeader>
-					<CardTitle className="text-2xl font-bold">Inventory</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<Button
-						onClick={() => {
-							generateRecipeWithAI();
-						}}
-					>
-						<Wand2 className="mr-2 h-4 w-4" /> {/* Add the icon here */}
-						Generate Recipe with AI
-					</Button>
-				</CardContent>
-			</Card>
-		</div>
+		<>
+			<RecipeGeneration />
+			<RecipeTable data={recipeData} />
+		</>
 	);
 }
