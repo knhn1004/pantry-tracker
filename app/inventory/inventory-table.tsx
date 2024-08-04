@@ -31,8 +31,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, Trash2, Carrot } from 'lucide-react';
 import UseItemDialog from './use-item-dialog';
+import { useInventoryItem, removeInventoryItem } from '@/lib/actions/items';
+import TrashItemDialog from './trash-item-dialog';
 
-type InventoryItem = {
+export type InventoryItem = {
 	id: string;
 	itemName: string;
 	quantity: number;
@@ -46,8 +48,9 @@ export default function InventoryTable({ data }: { data: InventoryItem[] }) {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = useState({});
 
-	// use item dialog
+	// use item dialog & remove item dialog
 	const [isUseDialogOpen, setIsUseDialogOpen] = useState(false);
+	const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
 	const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
 	const columns: ColumnDef<InventoryItem>[] = [
@@ -101,7 +104,7 @@ export default function InventoryTable({ data }: { data: InventoryItem[] }) {
 						<Button
 							variant="ghost"
 							size="icon"
-							onClick={() => handleTrashItem(item.id)}
+							onClick={() => handleTrashItem(item)}
 						>
 							<Trash2 className="h-4 w-4" />
 						</Button>
@@ -132,16 +135,23 @@ export default function InventoryTable({ data }: { data: InventoryItem[] }) {
 		setSelectedItem(item);
 		setIsUseDialogOpen(true);
 	};
-	const handleConfirmUse = (quantity: number) => {
+	const handleConfirmUse = async (quantity: number) => {
 		if (selectedItem) {
-			console.log(`Using ${quantity} of item: ${selectedItem.itemName}`);
+			await useInventoryItem(selectedItem.id, quantity);
 			// Implement the actual logic for using an item here
 		}
 	};
 
-	const handleTrashItem = (id: string) => {
-		console.log(`Trashing item with id: ${id}`);
-		// Implement the actual logic for trashing an item here
+	const handleConfirmRemove = async () => {
+		if (selectedItem) {
+			await removeInventoryItem(selectedItem.id);
+			setIsRemoveDialogOpen(false);
+		}
+	};
+
+	const handleTrashItem = (item: InventoryItem) => {
+		setSelectedItem(item);
+		setIsRemoveDialogOpen(true);
 	};
 
 	return (
@@ -258,6 +268,12 @@ export default function InventoryTable({ data }: { data: InventoryItem[] }) {
 				onConfirm={handleConfirmUse}
 				itemName={selectedItem?.itemName || ''}
 				maxQuantity={selectedItem?.quantity || 0}
+			/>
+			<TrashItemDialog
+				isRemoveDialogOpen={isRemoveDialogOpen}
+				setIsRemoveDialogOpen={setIsRemoveDialogOpen}
+				selectedItem={selectedItem}
+				handleConfirmRemove={handleConfirmRemove}
 			/>
 		</>
 	);

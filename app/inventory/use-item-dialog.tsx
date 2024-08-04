@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 interface UseItemDialogProps {
 	isOpen: boolean;
 	onClose: () => void;
-	onConfirm: (quantity: number) => void;
+	onConfirm: (quantity: number) => Promise<void>;
 	itemName: string;
 	maxQuantity: number;
 }
@@ -27,8 +27,8 @@ export default function UseItemDialog({
 }: UseItemDialogProps) {
 	const [quantity, setQuantity] = useState(1);
 
-	const handleConfirm = () => {
-		onConfirm(quantity);
+	const handleConfirm = async () => {
+		await onConfirm(quantity);
 		onClose();
 	};
 
