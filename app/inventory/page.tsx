@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import InventoryTable from './inventory-table'; // This will be our client component
-import { PlusCircle } from 'lucide-react';
+import { Camera, PlusCircle } from 'lucide-react';
 import NewFeatures from './new-features';
 
 export default async function Inventory() {
@@ -39,6 +39,12 @@ export default async function Inventory() {
 						</Button>
 					</Link>
 					<NewFeatures />
+					<Link href="/inventory/image-recognition">
+						<Button className="ml-2" variant="outline">
+							<Camera className="mr-2 h-4 w-4" />
+							Take a Photo
+						</Button>
+					</Link>
 				</CardContent>
 			</Card>
 
