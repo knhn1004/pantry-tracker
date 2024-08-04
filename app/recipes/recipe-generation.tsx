@@ -9,6 +9,8 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
+export const maxDuration = 30;
+
 export default function RecipeGeneration() {
 	const [isLoading, setIsLoading] = useState(false);
 
