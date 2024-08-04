@@ -14,23 +14,22 @@ export default function RecipeGeneration() {
 
 	const handleGenerateRecipe = async () => {
 		setIsLoading(true);
-		try {
-			await generateRecipeWithAI();
+		const response = await generateRecipeWithAI();
+		const success = response?.success;
+		const message = response?.message;
+		if (success) {
 			toast({
 				title: 'Success',
 				description: 'Recipe generated successfully!',
 			});
-		} catch (error) {
-			console.error('Error generating recipe:', error);
+		} else {
 			toast({
 				title: 'Error',
-				description:
-					error instanceof Error ? error.message : 'An unknown error occurred',
+				description: message || 'An unknown error occurred',
 				variant: 'destructive',
 			});
-		} finally {
-			setIsLoading(false);
 		}
+		setIsLoading(false);
 	};
 
 	return (

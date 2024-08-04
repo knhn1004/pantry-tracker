@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import InventoryTable from './inventory-table'; // This will be our client component
+import { PlusCircle } from 'lucide-react';
 
 export default async function Inventory() {
 	const itemsWithInventory = await fetchItemsWithInventory();
@@ -27,7 +28,10 @@ export default async function Inventory() {
 				</CardHeader>
 				<CardContent>
 					<Link href="/inventory/add">
-						<Button>Add New</Button>
+						<Button>
+							<PlusCircle className="mr-2 h-4 w-4" />
+							Add New
+						</Button>
 					</Link>
 				</CardContent>
 			</Card>

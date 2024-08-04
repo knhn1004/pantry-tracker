@@ -110,9 +110,10 @@ export async function generateRecipeWithAI() {
 
 		console.log('Recipe stored successfully:', recipeData);
 		revalidatePath('/recipes');
-		return recipeData;
+		return { success: true };
 	} catch (error) {
 		console.error('Error generating recipe: ', error);
+		return { success: false, message: (error as Error).message };
 	}
 }
 
