@@ -1,13 +1,9 @@
-import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Tables } from '@/database.types';
 
-// You might want to create separate components for these
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { createClerkSupabaseClient } from '@/lib/supabase/server';
-
-export const dynamic = 'force-dynamic';
 
 async function getRecipe(id: string) {
 	const supabase = await createClerkSupabaseClient();
@@ -54,7 +50,9 @@ export default async function RecipePage({
 					<CardTitle className="text-2xl font-bold">{recipe.name}</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<p className="text-gray-600 mb-4">{recipe.description}</p>
+					<p className="text-gray-600 mb-4 dark:text-slate-200">
+						{recipe.description}
+					</p>
 					<div className="flex space-x-4 mb-4">
 						<Badge variant="secondary">Servings: {recipe.servings}</Badge>
 						<Badge variant="secondary">
@@ -74,7 +72,9 @@ export default async function RecipePage({
 						))}
 					</ul>
 					<h3 className="text-xl font-semibold mb-2">Instructions:</h3>
-					<p className="whitespace-pre-wrap">{recipe.instructions}</p>
+					<p className="whitespace-pre-wrap text-gray-400">
+						{recipe.instructions}
+					</p>
 				</CardContent>
 			</Card>
 		</div>

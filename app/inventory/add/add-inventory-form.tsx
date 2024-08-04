@@ -264,14 +264,20 @@ export default function AddInventoryForm({
 					</Button>
 				</div>
 
-				<Button type="submit" className="w-full">
-					Add to Inventory
-				</Button>
-				<Link href="/inventory">
-					<Button className="w-full mt-4" variant="outline">
-						Cancel
-					</Button>
-				</Link>
+				<div className="flex flex-col sm:flex-row gap-4">
+					<div className="w-full sm:w-1/2">
+						<Button type="submit" className="w-full">
+							Add to Inventory
+						</Button>
+					</div>
+					<div className="w-full sm:w-1/2">
+						<Link href="/inventory" className="w-full">
+							<Button className="w-full" variant="secondary">
+								Cancel
+							</Button>
+						</Link>
+					</div>
+				</div>
 			</form>
 		</Form>
 	);
