@@ -9,6 +9,7 @@ import {
 import { ImageUpload } from './image-upload';
 import CameraImage from './camera-image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
 
 export default async function Page() {
 	return (
@@ -45,6 +46,14 @@ export default async function Page() {
 				<div className="flex-1">
 					<CameraImage />
 				</div>
+			</div>
+			<div className="md:hidden mt-4">
+				<Link
+					href="/inventory"
+					className="block w-full py-2 px-4 bg-gray-200 text-center rounded-md text-gray-700 font-medium"
+				>
+					Cancel
+				</Link>
 			</div>
 		</div>
 	);
