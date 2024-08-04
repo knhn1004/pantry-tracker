@@ -30,11 +30,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown, Eye, Trash2 } from 'lucide-react';
 import { Tables } from '@/database.types';
+import TrashRecipeDialog from './trash-recipe-dialog';
+import { deleteRecipe } from '@/lib/actions/recipes';
+import { useRouter } from 'next/navigation';
 
 export default function RecipeTable({ data }: { data: Tables<'recipes'>[] }) {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = useState({});
+	const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
+	const [selectedRecipe, setSelectedRecipe] =
+		useState<Tables<'recipes'> | null>(null);
 
 	const columns: ColumnDef<Tables<'recipes'>>[] = [
 		{
@@ -105,14 +111,20 @@ export default function RecipeTable({ data }: { data: Tables<'recipes'>[] }) {
 		},
 	});
 
+	const router = useRouter();
 	const handleViewRecipe = (recipe: Tables<'recipes'>) => {
-		// Implement view recipe logic
-		console.log('Viewing recipe:', recipe);
+		router.push(`/recipes/${recipe.id}`);
 	};
 
 	const handleDeleteRecipe = (recipe: Tables<'recipes'>) => {
-		// Implement delete recipe logic
-		console.log('Deleting recipe:', recipe);
+		setSelectedRecipe(recipe);
+		setIsRemoveDialogOpen(true);
+	};
+	const handleConfirmRemove = async () => {
+		if (selectedRecipe) {
+			await deleteRecipe(selectedRecipe.id);
+			setIsRemoveDialogOpen(false);
+		}
 	};
 
 	return (
@@ -221,6 +233,12 @@ export default function RecipeTable({ data }: { data: Tables<'recipes'>[] }) {
 					Next
 				</Button>
 			</div>
+			<TrashRecipeDialog
+				isRemoveDialogOpen={isRemoveDialogOpen}
+				setIsRemoveDialogOpen={setIsRemoveDialogOpen}
+				selectedRecipe={selectedRecipe}
+				handleConfirmRemove={handleConfirmRemove}
+			/>
 		</>
 	);
 }

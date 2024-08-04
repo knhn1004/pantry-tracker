@@ -50,6 +50,7 @@ export async function generateRecipeWithAI() {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
+					Authorization: `Bearer ${process.env.FLOWISE_API_KEY}`,
 				},
 				body: JSON.stringify({ question }),
 			}

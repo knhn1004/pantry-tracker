@@ -31,8 +31,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, Trash2, Carrot } from 'lucide-react';
 import UseItemDialog from './use-item-dialog';
-import { useInventoryItem, removeInventoryItem } from '@/lib/actions/items';
 import TrashItemDialog from './trash-item-dialog';
+import { useInventoryItem, removeInventoryItem } from '@/lib/actions/items';
 
 export type InventoryItem = {
 	id: string;
