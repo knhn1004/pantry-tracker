@@ -30,6 +30,10 @@ PantryTracker.ai is a smart pantry management system designed to help you reduce
 - Supabase for database and backend services
 - Flowise for AI workflow automation
 
+## Database Schema
+
+![Database Schema](./assets/db.png)
+
 ## Getting Started
 
 1. Clone the repository:
@@ -74,3 +78,5 @@ bun dev
 ## Flowise API
 
 Deploy your own Flowise instance and load json file from `flowise` folder to your instance.
+
+> **Note**: Flowise API is not included in this repository. Due to limitation, the flowise server may not be available at all times.
