@@ -20,6 +20,8 @@ import {
 } from '@/components/ui/form';
 import { useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { uploadAndProcess } from './upload';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
 	image: z.instanceof(File).optional(),
@@ -58,6 +60,8 @@ export function ImageUpload() {
 		if (values.image) {
 			// TODO: Implement your image upload logic here
 			console.log('Uploading file:', values.image);
+			if (!values.image) return;
+			await uploadAndProcess(values.image);
 		}
 	};
 
