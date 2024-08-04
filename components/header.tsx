@@ -31,7 +31,7 @@ export default function Header() {
 				{/* Left: Site Name */}
 				<div className="flex flex-1 items-center justify-start">
 					<Link href="/" className="flex items-center space-x-2">
-						<span className="font-bold text-xl">Pantry Tracker</span>
+						<span className="font-bold text-xl">PantryTracker.ai</span>
 					</Link>
 				</div>
 
