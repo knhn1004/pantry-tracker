@@ -23,6 +23,31 @@ import { toast } from 'sonner';
 import { Trash2 as RemoveIcon } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 
+const FilePreview = ({ file }: { file: File }) => {
+	const [preview, setPreview] = useState<string | null>(null);
+
+	useEffect(() => {
+		const objectUrl = URL.createObjectURL(file);
+		setPreview(objectUrl);
+
+		return () => URL.revokeObjectURL(objectUrl);
+	}, [file]);
+
+	if (!preview) {
+		return null;
+	}
+
+	return (
+		<div className="relative w-10 h-10 mr-2">
+			<img
+				src={preview}
+				alt="File preview"
+				className="w-full h-full object-cover rounded"
+			/>
+		</div>
+	);
+};
+
 type DirectionOptions = 'rtl' | 'ltr' | undefined;
 
 type FileUploaderContextType = {
@@ -34,6 +59,7 @@ type FileUploaderContextType = {
 	setActiveIndex: Dispatch<SetStateAction<number>>;
 	orientation: 'horizontal' | 'vertical';
 	direction: DirectionOptions;
+	value: File[] | null;
 };
 
 const FileUploaderContext = createContext<FileUploaderContextType | null>(null);
@@ -160,17 +186,20 @@ export const FileUploader = forwardRef<
 					return;
 				}
 
-				const newValues: File[] = value ? [...value] : [];
+				let newValues: File[] = [];
 
-				if (reSelectAll) {
-					newValues.splice(0, newValues.length);
+				if (maxFiles === 1) {
+					// If maxFiles is 1, always replace the existing file
+					newValues = files.slice(0, 1);
+				} else {
+					// For multiple files, append to existing files up to maxFiles
+					newValues = value ? [...value] : [];
+					files.forEach(file => {
+						if (newValues.length < maxFiles) {
+							newValues.push(file);
+						}
+					});
 				}
-
-				files.forEach(file => {
-					if (newValues.length < maxFiles) {
-						newValues.push(file);
-					}
-				});
 
 				onValueChange(newValues);
 
@@ -223,6 +252,7 @@ export const FileUploader = forwardRef<
 					setActiveIndex,
 					orientation,
 					direction,
+					value,
 				}}
 			>
 				<div
@@ -252,7 +282,7 @@ export const FileUploaderContent = forwardRef<
 	HTMLDivElement,
 	React.HTMLAttributes<HTMLDivElement>
 >(({ children, className, ...props }, ref) => {
-	const { orientation } = useFileUpload();
+	const { orientation, value } = useFileUpload();
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	return (
@@ -270,7 +300,12 @@ export const FileUploaderContent = forwardRef<
 					className
 				)}
 			>
-				{children}
+				{value &&
+					value.map((file: File, index: number) => (
+						<FileUploaderItem key={file.name} index={index} file={file}>
+							{file.name}
+						</FileUploaderItem>
+					))}
 			</div>
 		</div>
 	);
@@ -280,8 +315,8 @@ FileUploaderContent.displayName = 'FileUploaderContent';
 
 export const FileUploaderItem = forwardRef<
 	HTMLDivElement,
-	{ index: number } & React.HTMLAttributes<HTMLDivElement>
->(({ className, index, children, ...props }, ref) => {
+	{ index: number; file: File } & React.HTMLAttributes<HTMLDivElement>
+>(({ className, index, file, children, ...props }, ref) => {
 	const { removeFileFromSet, activeIndex, direction } = useFileUpload();
 	const isSelected = index === activeIndex;
 	return (
@@ -289,13 +324,14 @@ export const FileUploaderItem = forwardRef<
 			ref={ref}
 			className={cn(
 				buttonVariants({ variant: 'ghost' }),
-				'h-6 p-1 justify-between cursor-pointer relative',
+				'h-12 p-1 justify-between cursor-pointer relative',
 				className,
 				isSelected ? 'bg-muted' : ''
 			)}
 			{...props}
 		>
 			<div className="font-medium leading-none tracking-tight flex items-center gap-1.5 h-full w-full">
+				<FilePreview file={file} />
 				{children}
 			</div>
 			<button
@@ -320,19 +356,17 @@ export const FileInput = forwardRef<
 	React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => {
 	const { dropzoneState, isFileTooBig, isLOF } = useFileUpload();
-	const rootProps = isLOF ? {} : dropzoneState.getRootProps();
+	const rootProps = dropzoneState.getRootProps(); // Remove the isLOF condition
 	return (
 		<div
 			ref={ref}
 			{...props}
-			className={`relative w-full ${
-				isLOF ? 'opacity-50 cursor-not-allowed ' : 'cursor-pointer '
-			}`}
+			className={`relative w-full ${isLOF ? 'opacity-50' : ''} cursor-pointer`} // Remove cursor-not-allowed
 		>
 			<div
 				className={cn(
 					`w-full rounded-lg duration-300 ease-in-out
-         ${
+          ${
 						dropzoneState.isDragAccept
 							? 'border-green-500'
 							: dropzoneState.isDragReject || isFileTooBig
@@ -347,9 +381,8 @@ export const FileInput = forwardRef<
 			</div>
 			<Input
 				ref={dropzoneState.inputRef}
-				disabled={isLOF}
 				{...dropzoneState.getInputProps()}
-				className={`${isLOF ? 'cursor-not-allowed' : ''}`}
+				className="cursor-pointer" // Remove conditional class
 			/>
 		</div>
 	);

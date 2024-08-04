@@ -10,6 +10,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
+import { CameraIcon, ImageIcon, UploadIcon, XIcon } from 'lucide-react';
 
 type FormData = {
 	photo: File | null;
@@ -69,6 +70,10 @@ const CameraImage: React.FC = () => {
 		}
 		stopCamera();
 	};
+	const resetPreview = () => {
+		setPreview(null);
+		setValue('photo', null);
+	};
 
 	const onSubmit = (data: FormData) => {
 		console.log('Uploaded file:', data.photo);
@@ -94,31 +99,56 @@ const CameraImage: React.FC = () => {
 					<img src={preview} alt="Captured" className="w-full h-auto" />
 				)}
 				{!stream && !preview && (
-					<div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-						Camera preview
+					<div className="w-full h-48 bg-gray-200 flex flex-col items-center justify-center">
+						<ImageIcon className="h-12 w-12 mb-2 text-gray-400" />
+						<span className="text-gray-500">Camera preview</span>
 					</div>
 				)}
 				<canvas ref={canvasRef} style={{ display: 'none' }} />
 			</CardContent>
 			<CardFooter className="flex flex-col gap-2">
 				{!stream && !preview && (
-					<Button onClick={startCamera}>Start Camera</Button>
+					<Button onClick={startCamera} className="w-full">
+						<CameraIcon className="mr-2 h-4 w-4" />
+						Start Camera
+					</Button>
 				)}
 				{stream && (
 					<>
-						<Button onClick={capturePhoto}>Take Photo</Button>
-						<Button onClick={stopCamera} variant="destructive">
+						<Button onClick={capturePhoto} className="w-full">
+							<CameraIcon className="mr-2 h-4 w-4" />
+							Take Photo
+						</Button>
+						<Button
+							onClick={stopCamera}
+							className="w-full"
+							variant="destructive"
+						>
+							<XIcon className="mr-2 h-4 w-4" />
 							Stop Camera
 						</Button>
 					</>
 				)}
 				{preview && (
-					<form onSubmit={handleSubmit(onSubmit)} className="w-full">
-						<input type="hidden" {...register('photo')} />
-						<Button type="submit" className="w-full">
-							Upload Photo
+					<>
+						<form onSubmit={handleSubmit(onSubmit)} className="w-full">
+							<input type="hidden" {...register('photo')} />
+							<Button type="submit" className="w-full mb-2">
+								<UploadIcon className="mr-2 h-4 w-4" />
+								Upload Photo
+							</Button>
+						</form>
+						<Button
+							onClick={() => {
+								resetPreview();
+								startCamera();
+							}}
+							variant="outline"
+							className="w-full"
+						>
+							Retake Photo
 						</Button>
-					</form>
+					</>
 				)}
 			</CardFooter>
 		</Card>

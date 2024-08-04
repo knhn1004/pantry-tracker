@@ -9,7 +9,7 @@ import {
 	FileInput,
 } from '@/components/extension/file-upload';
 import { Button } from '@/components/ui/button';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, Trash2Icon, UploadIcon } from 'lucide-react';
 import {
 	Form,
 	FormControl,
@@ -69,7 +69,7 @@ export function ImageUpload() {
 	return (
 		<Card className="w-full max-w-md mx-auto">
 			<CardHeader>
-				<CardTitle>Camera Capture</CardTitle>
+				<CardTitle>Image Upload</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<Form {...form}>
@@ -94,13 +94,13 @@ export function ImageUpload() {
 											className="relative bg-background rounded-lg p-2"
 										>
 											<FileInput className="outline-dashed outline-1 outline-muted">
-												<div className="flex items-center justify-center flex-col pt-3 pb-4 w-full">
+												<div className="flex items-center justify-center flex-col pt-3 pb-4 w-full h-48">
 													<ImageSvgDraw />
 												</div>
 											</FileInput>
 											<FileUploaderContent>
 												{field.value && (
-													<FileUploaderItem index={0}>
+													<FileUploaderItem index={0} file={field.value}>
 														<ImageIcon className="h-4 w-4 stroke-current mr-2" />
 														<span>{field.value.name}</span>
 													</FileUploaderItem>
@@ -119,6 +119,7 @@ export function ImageUpload() {
 								variant="outline"
 								className="mt-2 w-full"
 							>
+								<Trash2Icon className="w-4 h-4 mr-2" />
 								Remove Image
 							</Button>
 						)}
@@ -127,7 +128,8 @@ export function ImageUpload() {
 							className="mt-2 w-full"
 							disabled={!form.watch('image')}
 						>
-							Add Inventory From Image
+							<UploadIcon className="w-4 h-4 mr-2" />
+							Process Image for Inventory
 						</Button>
 					</form>
 				</Form>
