@@ -8,6 +8,7 @@ import {
 	SunIcon,
 	HamburgerMenuIcon,
 	Cross1Icon,
+	GitHubLogoIcon,
 } from '@radix-ui/react-icons';
 import Link from 'next/link';
 
@@ -63,8 +64,16 @@ export default function Header() {
 					</Link>
 				</nav>
 
-				{/* Right: Auth, Theme Toggle, and Hamburger Menu */}
 				<div className="flex flex-1 items-center justify-end space-x-2">
+					<Button variant="ghost" size="icon" aria-label="GitHub" asChild>
+						<Link
+							href="https://github.com/knhn1004/pantry-tracker"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<GitHubLogoIcon className="h-5 w-5" />
+						</Link>
+					</Button>
 					<SignedOut>
 						<SignInButton mode="modal">
 							<Button variant="ghost" className="hidden md:inline-flex">

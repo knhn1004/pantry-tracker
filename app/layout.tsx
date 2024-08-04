@@ -37,6 +37,9 @@ export default function RootLayout({
 							{children}
 						</main>
 					</ThemeProvider>
+					<footer className="text-center text-muted-foreground fixed bottom-0 w-full p-4">
+						<p>&copy; 2024 PantryTracker.ai. All rights reserved.</p>
+					</footer>{' '}
 				</body>
 			</html>
 		</ClerkProvider>
