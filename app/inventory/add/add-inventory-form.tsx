@@ -24,6 +24,8 @@ import { Input } from '@/components/ui/input';
 import { formSchema, type FormData } from './add-inventory-form-schema';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from '@/components/ui/use-toast';
+import { ToastAction } from '@radix-ui/react-toast';
 
 interface IAddInventory {
 	items: { id: string; name: string }[];
@@ -63,9 +65,21 @@ export default function AddInventoryForm({
 
 		try {
 			await addInventoryItem(formData);
+
+			form.reset();
+
+			toast({
+				title: 'Success',
+				description: 'Inventory item added successfully',
+			});
 			router.push('/inventory');
 		} catch (error) {
 			console.error('Error adding inventory item:', error);
+			toast({
+				title: 'Error',
+				description:
+					error instanceof Error ? error.message : 'An unknown error occurred',
+			});
 		}
 	};
 

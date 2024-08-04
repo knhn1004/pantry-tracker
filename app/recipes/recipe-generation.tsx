@@ -7,6 +7,7 @@ import { generateRecipeWithAI } from '@/lib/actions/recipes';
 import { Wand2 } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 export default function RecipeGeneration() {
 	const [isLoading, setIsLoading] = useState(false);
@@ -15,8 +16,18 @@ export default function RecipeGeneration() {
 		setIsLoading(true);
 		try {
 			await generateRecipeWithAI();
+			toast({
+				title: 'Success',
+				description: 'Recipe generated successfully!',
+			});
 		} catch (error) {
 			console.error('Error generating recipe:', error);
+			toast({
+				title: 'Error',
+				description:
+					error instanceof Error ? error.message : 'An unknown error occurred',
+				variant: 'destructive',
+			});
 		} finally {
 			setIsLoading(false);
 		}

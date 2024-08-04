@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Badge } from '@/components/ui/badge';
 import { createClerkSupabaseClient } from '@/lib/supabase/server';
+import CookRecipeButton from './cook-recipe-button';
 
 async function getRecipe(id: string) {
 	const supabase = await createClerkSupabaseClient();
@@ -66,7 +67,10 @@ export default async function RecipePage({
 			</Breadcrumb>
 			<Card className="mb-6">
 				<CardHeader>
-					<CardTitle className="text-2xl font-bold">{recipe.name}</CardTitle>
+					<div className="flex justify-between items-center">
+						<CardTitle className="text-2xl font-bold">{recipe.name}</CardTitle>
+						<CookRecipeButton recipeId={recipe.id} />
+					</div>
 				</CardHeader>
 				<CardContent>
 					<p className="text-gray-600 mb-4 dark:text-slate-200">

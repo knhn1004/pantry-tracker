@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { Inter as FontSans } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from '@/components/ui/toaster';
 
 const fontSans = FontSans({
 	subsets: ['latin'],
@@ -36,6 +37,7 @@ export default function RootLayout({
 						<main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
 							{children}
 						</main>
+						<Toaster />
 					</ThemeProvider>
 					<footer className="text-center text-muted-foreground fixed bottom-0 w-full p-4">
 						<p>&copy; 2024 PantryTracker.ai. All rights reserved.</p>

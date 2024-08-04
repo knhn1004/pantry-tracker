@@ -158,3 +158,124 @@ export async function deleteRecipe(recipeId: string) {
 
 	revalidatePath('/recipes');
 }
+
+export async function cookRecipe(recipeId: string) {
+	const supabase = await createClerkSupabaseClient();
+
+	try {
+		const { data: recipe, error: recipeError } = await supabase
+			.from('recipes')
+			.select(
+				`
+        *,
+        recipe_ingredients (
+          quantity,
+          unit_id,
+          item_id,
+          items (name)
+        )
+      `
+			)
+			.eq('id', recipeId)
+			.single();
+
+		if (recipeError || !recipe) {
+			throw new Error(
+				`Failed to fetch recipe: ${recipeError?.message || 'Recipe not found'}`
+			);
+		}
+
+		// Check if we have enough inventory for all ingredients
+		for (const ingredient of recipe.recipe_ingredients) {
+			const { data: inventoryItems, error: inventoryError } = await supabase
+				.from('inventory')
+				.select('*')
+				.eq('item_id', ingredient.item_id ?? '')
+				.eq('unit_id', ingredient.unit_id ?? '')
+				.order('expiration_date', { ascending: true });
+
+			if (inventoryError) {
+				throw new Error(
+					`Failed to fetch inventory items: ${inventoryError.message}`
+				);
+			}
+
+			const totalQuantity = inventoryItems.reduce(
+				(sum, item) => sum + item.quantity,
+				0
+			);
+
+			if (totalQuantity < ingredient.quantity) {
+				throw new Error(
+					`Not enough inventory for ingredient: ${ingredient.items?.name}`
+				);
+			}
+		}
+
+		// Update inventory for each ingredient
+		for (const ingredient of recipe.recipe_ingredients) {
+			let remainingQuantity = ingredient.quantity;
+
+			const { data: inventoryItems, error: inventoryError } = await supabase
+				.from('inventory')
+				.select('*')
+				.eq('item_id', ingredient.item_id ?? '')
+				.eq('unit_id', ingredient.unit_id ?? '')
+				.order('expiration_date', { ascending: true });
+
+			if (inventoryError) {
+				throw new Error(
+					`Failed to fetch inventory items: ${inventoryError.message}`
+				);
+			}
+
+			for (const inventoryItem of inventoryItems) {
+				if (remainingQuantity <= 0) break;
+
+				const quantityToRemove = Math.min(
+					remainingQuantity,
+					inventoryItem.quantity
+				);
+				const newQuantity = inventoryItem.quantity - quantityToRemove;
+
+				if (newQuantity <= 0) {
+					const { error: deleteError } = await supabase
+						.from('inventory')
+						.delete()
+						.eq('id', inventoryItem.id);
+
+					if (deleteError) {
+						throw new Error(
+							`Failed to delete inventory item: ${deleteError.message}`
+						);
+					}
+				} else {
+					const { error: updateError } = await supabase
+						.from('inventory')
+						.update({ quantity: newQuantity })
+						.eq('id', inventoryItem.id);
+
+					if (updateError) {
+						throw new Error(
+							`Failed to update inventory item: ${updateError.message}`
+						);
+					}
+				}
+
+				remainingQuantity -= quantityToRemove;
+			}
+		}
+
+		revalidatePath('/inventory');
+
+		return {
+			success: true,
+			message: 'Recipe cooked and inventory updated successfully.',
+		};
+	} catch (error) {
+		return {
+			success: false,
+			message: (error as Error).message,
+		};
+	}
+}
