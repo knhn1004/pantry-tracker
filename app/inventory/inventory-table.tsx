@@ -29,7 +29,8 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Trash2, Carrot } from 'lucide-react';
+import UseItemDialog from './use-item-dialog';
 
 type InventoryItem = {
 	id: string;
@@ -40,47 +41,75 @@ type InventoryItem = {
 	expirationDate: string;
 };
 
-const columns: ColumnDef<InventoryItem>[] = [
-	{
-		accessorKey: 'itemName',
-		header: 'Item Name',
-		cell: ({ row }) => <div>{row.getValue('itemName')}</div>,
-	},
-	{
-		accessorKey: 'quantity',
-		header: 'Quantity',
-		cell: ({ row }) => <div>{row.getValue('quantity')}</div>,
-	},
-	{
-		accessorKey: 'unit',
-		header: 'Unit',
-		cell: ({ row }) => <div>{row.getValue('unit') || '-'}</div>,
-	},
-	{
-		accessorKey: 'location',
-		header: 'Location',
-		cell: ({ row }) => <div>{row.getValue('location') || '-'}</div>,
-	},
-	{
-		accessorKey: 'expirationDate',
-		header: 'Expiration Date',
-		cell: ({ row }) => {
-			const date = row.getValue('expirationDate') as string;
-			return date ? (
-				<Badge variant={getExpirationBadgeVariant(date)}>
-					{new Date(date).toLocaleDateString()}
-				</Badge>
-			) : (
-				<Badge variant="outline">N/A</Badge>
-			);
-		},
-	},
-];
-
 export default function InventoryTable({ data }: { data: InventoryItem[] }) {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = useState({});
+
+	// use item dialog
+	const [isUseDialogOpen, setIsUseDialogOpen] = useState(false);
+	const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+
+	const columns: ColumnDef<InventoryItem>[] = [
+		{
+			accessorKey: 'itemName',
+			header: 'Item Name',
+			cell: ({ row }) => <div>{row.getValue('itemName')}</div>,
+		},
+		{
+			accessorKey: 'quantity',
+			header: 'Quantity',
+			cell: ({ row }) => <div>{row.getValue('quantity')}</div>,
+		},
+		{
+			accessorKey: 'unit',
+			header: 'Unit',
+			cell: ({ row }) => <div>{row.getValue('unit') || '-'}</div>,
+		},
+		{
+			accessorKey: 'location',
+			header: 'Location',
+			cell: ({ row }) => <div>{row.getValue('location') || '-'}</div>,
+		},
+		{
+			accessorKey: 'expirationDate',
+			header: 'Expiration Date',
+			cell: ({ row }) => {
+				const date = row.getValue('expirationDate') as string;
+				return date ? (
+					<Badge variant={getExpirationBadgeVariant(date)}>
+						{new Date(date).toLocaleDateString()}
+					</Badge>
+				) : (
+					<Badge variant="outline">-</Badge>
+				);
+			},
+		},
+		{
+			id: 'actions',
+			cell: ({ row }) => {
+				const item = row.original;
+				return (
+					<div className="flex space-x-2">
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={() => handleUseItem(item)}
+						>
+							<Carrot className="h-4 w-4" />
+						</Button>
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={() => handleTrashItem(item.id)}
+						>
+							<Trash2 className="h-4 w-4" />
+						</Button>
+					</div>
+				);
+			},
+		},
+	];
 
 	const table = useReactTable({
 		data,
@@ -98,6 +127,22 @@ export default function InventoryTable({ data }: { data: InventoryItem[] }) {
 			columnVisibility,
 		},
 	});
+
+	const handleUseItem = (item: InventoryItem) => {
+		setSelectedItem(item);
+		setIsUseDialogOpen(true);
+	};
+	const handleConfirmUse = (quantity: number) => {
+		if (selectedItem) {
+			console.log(`Using ${quantity} of item: ${selectedItem.itemName}`);
+			// Implement the actual logic for using an item here
+		}
+	};
+
+	const handleTrashItem = (id: string) => {
+		console.log(`Trashing item with id: ${id}`);
+		// Implement the actual logic for trashing an item here
+	};
 
 	return (
 		<>
@@ -207,6 +252,13 @@ export default function InventoryTable({ data }: { data: InventoryItem[] }) {
 					Next
 				</Button>
 			</div>
+			<UseItemDialog
+				isOpen={isUseDialogOpen}
+				onClose={() => setIsUseDialogOpen(false)}
+				onConfirm={handleConfirmUse}
+				itemName={selectedItem?.itemName || ''}
+				maxQuantity={selectedItem?.quantity || 0}
+			/>
 		</>
 	);
 }
