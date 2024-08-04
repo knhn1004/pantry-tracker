@@ -6,8 +6,8 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { ImageUpload } from './image-upload';
-import CameraImage from './camera-image';
+import { ImageUpload } from './image-upload-form';
+import CameraImage from './camera-image-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 

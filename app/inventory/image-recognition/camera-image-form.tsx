@@ -11,6 +11,7 @@ import {
 	CardTitle,
 } from '@/components/ui/card';
 import { CameraIcon, ImageIcon, UploadIcon, XIcon } from 'lucide-react';
+import { uploadAndProcess } from './upload';
 
 type FormData = {
 	photo: File | null;
@@ -75,9 +76,10 @@ const CameraImage: React.FC = () => {
 		setValue('photo', null);
 	};
 
-	const onSubmit = (data: FormData) => {
+	const onSubmit = async (data: FormData) => {
 		console.log('Uploaded file:', data.photo);
-		// Here you would typically send the file to your server
+		if (!data.photo) return;
+		await uploadAndProcess(data.photo);
 	};
 
 	return (

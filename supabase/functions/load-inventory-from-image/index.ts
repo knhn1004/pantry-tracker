@@ -1,5 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { decode, Payload } from 'https://deno.land/x/djwt@v2.8/mod.ts';
 
 const corsHeaders = {
@@ -53,31 +53,10 @@ serve(async req => {
 
 		const fileExt = file.name.split('.').pop();
 		const fileName = `${crypto.randomUUID()}.${fileExt}`;
-		const filePath = `images/${userId}/${fileName}`;
-
-		const { data: bucketData, error } = await supabase.storage.listBuckets();
-
-		if (error) {
-			console.error('Error checking buckets:', error);
-			throw error;
-		}
-
 		const bucketName = 'images';
-		const bucketExists = bucketData.some(bucket => bucket.name === bucketName);
+		const filePath = `${bucketName}/${userId}/${fileName}`;
 
-		if (!bucketExists) {
-			const { error: createError } = await supabase.storage.createBucket(
-				bucketName,
-				{ public: true }
-			);
-
-			if (createError) {
-				console.error('Error creating bucket:', createError);
-				throw createError;
-			}
-
-			console.log(`Bucket '${bucketName}' created successfully.`);
-		}
+		console.log(`uploading to ${filePath} ....`);
 		const { data, error: uploadError } = await supabase.storage
 			.from(bucketName)
 			.upload(filePath, file, {
