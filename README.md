@@ -1,6 +1,7 @@
 # PantryTracker.ai
 
 ![PantryTracker.ai Logo](./assets/pantry-tracker.png)
+[![PantryTracker.ai Video](https://img.youtube.com/vi/TndjQt7Z8pU/0.jpg)](https://www.youtube.com/watch?v=TndjQt7Z8pU)
 
 PantryTracker.ai is a smart pantry management system designed to help you reduce food waste, save money, and simplify meal planning.
 
