@@ -2,6 +2,14 @@ import { notFound } from 'next/navigation';
 import { Tables } from '@/database.types';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import { Badge } from '@/components/ui/badge';
 import { createClerkSupabaseClient } from '@/lib/supabase/server';
 
@@ -45,6 +53,17 @@ export default async function RecipePage({
 
 	return (
 		<div className="container mx-auto p-4">
+			<Breadcrumb className="mb-4">
+				<BreadcrumbList>
+					<BreadcrumbItem>
+						<BreadcrumbLink href="/recipes">Recipes</BreadcrumbLink>
+					</BreadcrumbItem>
+					<BreadcrumbSeparator />
+					<BreadcrumbItem>
+						<BreadcrumbPage>{recipe.name}</BreadcrumbPage>
+					</BreadcrumbItem>
+				</BreadcrumbList>
+			</Breadcrumb>
 			<Card className="mb-6">
 				<CardHeader>
 					<CardTitle className="text-2xl font-bold">{recipe.name}</CardTitle>
