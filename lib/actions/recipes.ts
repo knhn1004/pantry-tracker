@@ -45,7 +45,7 @@ export async function generateRecipeWithAI() {
 	const question = JSON.stringify(formattedInventory);
 	try {
 		const response = await fetch(
-			`${process.env.FLOWISE_BASE_URL}/api/v1/prediction/f19479b5-dfea-4255-9f01-09f90bbbc7ed`,
+			`${process.env.FLOWISE_BASE_URL}${process.env.FLOWISE_GENERATE_RECIPE_URL}`,
 			{
 				method: 'POST',
 				headers: {
