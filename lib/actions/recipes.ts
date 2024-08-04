@@ -1,4 +1,5 @@
 'use server';
+export const maxDuration = 30;
 
 import { createClerkSupabaseClient } from '@/lib/supabase/server';
 import { auth } from '@clerk/nextjs/server';
