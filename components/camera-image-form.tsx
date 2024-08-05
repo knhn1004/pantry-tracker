@@ -11,13 +11,16 @@ import {
 	CardTitle,
 } from '@/components/ui/card';
 import { CameraIcon, ImageIcon, UploadIcon, XIcon } from 'lucide-react';
-import { uploadAndProcess } from './upload';
 
 type FormData = {
 	photo: File | null;
 };
 
-const CameraImage: React.FC = () => {
+const CameraImage = ({
+	processFunc,
+}: {
+	processFunc: (file: File) => Promise<any>;
+}) => {
 	const { register, handleSubmit, setValue } = useForm<FormData>();
 	const [stream, setStream] = useState<MediaStream | null>(null);
 	const [preview, setPreview] = useState<string | null>(null);
@@ -76,9 +79,8 @@ const CameraImage: React.FC = () => {
 	};
 
 	const onSubmit = async (data: FormData) => {
-		console.log('Uploaded file:', data.photo);
 		if (!data.photo) return;
-		await uploadAndProcess(data.photo);
+		await processFunc(data.photo);
 	};
 
 	return (
@@ -100,7 +102,7 @@ const CameraImage: React.FC = () => {
 					<img src={preview} alt="Captured" className="w-full h-auto" />
 				)}
 				{!stream && !preview && (
-					<div className="w-full h-48 bg-gray-200 flex flex-col items-center justify-center">
+					<div className="w-full h-48 flex flex-col items-center justify-center">
 						<ImageIcon className="h-12 w-12 mb-2 text-gray-400" />
 						<span className="text-gray-500">Camera preview</span>
 					</div>

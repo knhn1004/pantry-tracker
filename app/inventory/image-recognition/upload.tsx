@@ -7,7 +7,7 @@ export async function uploadAndProcess(image: File) {
 		const formData = new FormData();
 		formData.append('image', image);
 
-		const { data, error } = await supabaseClient.functions.invoke(
+		const { error } = await supabaseClient.functions.invoke(
 			'load-inventory-from-image',
 			{
 				body: formData,

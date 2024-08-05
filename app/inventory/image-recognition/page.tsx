@@ -6,10 +6,12 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { ImageUpload } from './image-upload-form';
-import CameraImage from './camera-image-form';
+import { ImageUpload } from '../../../components/image-upload-form';
+import CameraImage from '../../../components/camera-image-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
+import { uploadAndProcess } from './upload';
+import { revalidatePath } from 'next/cache';
 
 export default async function Page() {
 	return (
@@ -41,10 +43,10 @@ export default async function Page() {
 			</Card>
 			<div className="flex flex-col md:flex-row gap-4 py-4">
 				<div className="flex-1">
-					<ImageUpload />
+					<ImageUpload processFunc={uploadAndProcess} />
 				</div>
 				<div className="flex-1">
-					<CameraImage />
+					<CameraImage processFunc={uploadAndProcess} />
 				</div>
 			</div>
 			<div className="md:hidden mt-4">

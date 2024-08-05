@@ -42,7 +42,7 @@ export default async function Inventory() {
 					<Link href="/inventory/image-recognition">
 						<Button className="ml-2" variant="outline">
 							<Camera className="mr-2 h-4 w-4" />
-							Take a Photo
+							Take/Upload Photo
 						</Button>
 					</Link>
 				</CardContent>

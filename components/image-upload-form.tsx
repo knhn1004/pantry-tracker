@@ -15,13 +15,10 @@ import {
 	FormControl,
 	FormField,
 	FormItem,
-	FormLabel,
 	FormMessage,
 } from '@/components/ui/form';
 import { useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { uploadAndProcess } from './upload';
-import { toast } from 'sonner';
 
 const formSchema = z.object({
 	image: z.instanceof(File).optional(),
@@ -42,7 +39,11 @@ const ImageSvgDraw = () => {
 	);
 };
 
-export function ImageUpload() {
+export function ImageUpload({
+	processFunc,
+}: {
+	processFunc: (file: File) => Promise<any>;
+}) {
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
@@ -61,7 +62,7 @@ export function ImageUpload() {
 			// TODO: Implement your image upload logic here
 			console.log('Uploading file:', values.image);
 			if (!values.image) return;
-			await uploadAndProcess(values.image);
+			await processFunc(values.image);
 		}
 	};
 
@@ -86,7 +87,6 @@ export function ImageUpload() {
 							name="image"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Image</FormLabel>
 									<FormControl>
 										<FileUploader
 											value={field.value ? [field.value] : null}
