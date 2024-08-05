@@ -11,6 +11,7 @@ import {
 	GitHubLogoIcon,
 } from '@radix-ui/react-icons';
 import Link from 'next/link';
+import { navItems } from '@/lib/data/navItems';
 
 export default function Header() {
 	const { theme, setTheme } = useTheme();
@@ -38,30 +39,15 @@ export default function Header() {
 
 				{/* Middle: Navigation Links (hidden on mobile) */}
 				<nav className="hidden md:flex flex-1 items-center justify-center space-x-4">
-					<Link
-						href="/"
-						className="text-sm font-medium transition-colors hover:text-primary"
-					>
-						Home
-					</Link>
-					<Link
-						href="/inventory"
-						className="text-sm font-medium transition-colors hover:text-primary"
-					>
-						Inventory
-					</Link>
-					<Link
-						href="/recipes"
-						className="text-sm font-medium transition-colors hover:text-primary"
-					>
-						Recipes
-					</Link>
-					<Link
-						href="/shopping-list"
-						className="text-sm font-medium transition-colors hover:text-primary"
-					>
-						Shopping List
-					</Link>
+					{navItems.map(item => (
+						<Link
+							key={item.href}
+							href={item.href}
+							className="text-sm font-medium transition-colors hover:text-primary"
+						>
+							{item.label}
+						</Link>
+					))}
 				</nav>
 
 				<div className="flex flex-1 items-center justify-end space-x-2">
@@ -119,30 +105,15 @@ export default function Header() {
 				className="md:hidden overflow-hidden transition-all duration-300 ease-in-out"
 			>
 				<nav className="flex flex-col items-center space-y-4 py-4">
-					<Link
-						href="/"
-						className="text-sm font-medium transition-colors hover:text-primary"
-					>
-						Home
-					</Link>
-					<Link
-						href="/inventory"
-						className="text-sm font-medium transition-colors hover:text-primary"
-					>
-						Inventory
-					</Link>
-					<Link
-						href="/recipes"
-						className="text-sm font-medium transition-colors hover:text-primary"
-					>
-						Recipes
-					</Link>
-					<Link
-						href="/shopping-list"
-						className="text-sm font-medium transition-colors hover:text-primary"
-					>
-						Shopping List
-					</Link>
+					{navItems.map(item => (
+						<Link
+							key={item.href}
+							href={item.href}
+							className="text-sm font-medium transition-colors hover:text-primary"
+						>
+							{item.label}
+						</Link>
+					))}
 					<SignedOut>
 						<SignInButton mode="modal">
 							<Button variant="ghost">Sign In</Button>
