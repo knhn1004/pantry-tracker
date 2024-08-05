@@ -57,16 +57,15 @@ const CameraImage: React.FC = () => {
 			const context = canvas.getContext('2d');
 			if (context) {
 				context.drawImage(video, 0, 0, canvas.width, canvas.height);
-				const dataUrl = canvas.toDataURL('image/jpeg');
-				setPreview(dataUrl);
-
-				// Convert data URL to File object
-				fetch(dataUrl)
-					.then(res => res.blob())
-					.then(blob => {
-						const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
+				canvas.toBlob(blob => {
+					if (blob) {
+						const file = new File([blob], `photo_${Date.now()}.jpg`, {
+							type: 'image/jpeg',
+						});
 						setValue('photo', file);
-					});
+						setPreview(URL.createObjectURL(file));
+					}
+				}, 'image/jpeg');
 			}
 		}
 		stopCamera();
