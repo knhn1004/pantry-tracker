@@ -57,7 +57,7 @@ serve(async req => {
 		const filePath = `${bucketName}/${userId}/${fileName}`;
 
 		console.log(`uploading to ${filePath} ....`);
-		const { data, error: uploadError } = await supabase.storage
+		const { error: uploadError } = await supabase.storage
 			.from(bucketName)
 			.upload(filePath, file, {
 				upsert: true,
@@ -104,7 +104,7 @@ serve(async req => {
 		const result = await apiResponse.json();
 		const { item, quantity, unit } = result.json;
 		// Check if unit exists in units table
-		let { data: unitData, error: unitError } = await supabase
+		const { data: unitData, error: unitError } = await supabase
 			.from('units')
 			.select('id')
 			.eq('name', unit)

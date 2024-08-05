@@ -5,9 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { generateRecipeWithAI } from '@/lib/actions/recipes';
 import { Wand2 } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogTitle,
+} from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 export default function RecipeGeneration() {
 	const [isLoading, setIsLoading] = useState(false);
@@ -52,15 +58,20 @@ export default function RecipeGeneration() {
 
 			<Dialog open={isLoading} onOpenChange={setIsLoading}>
 				<DialogContent className="sm:max-w-[425px]">
-					<div className="flex flex-col items-center justify-center p-4">
-						<Loader2 className="h-8 w-8 animate-spin mb-4" />
-						<p className="text-center text-lg font-semibold">
-							Cooking up your recipe...
-						</p>
-						<p className="text-center text-sm text-muted-foreground mt-2">
-							Our AI chef is stirring the pot of creativity!
-						</p>
-					</div>
+					<VisuallyHidden>
+						<DialogTitle>Recipe Generation</DialogTitle>
+					</VisuallyHidden>
+					<DialogDescription asChild>
+						<div className="flex flex-col items-center justify-center p-4">
+							<Loader2 className="h-8 w-8 animate-spin mb-4" />
+							<p className="text-center text-lg font-semibold">
+								Cooking up your recipe...
+							</p>
+							<p className="text-center text-sm text-muted-foreground mt-2">
+								Our AI chef is stirring the pot of creativity!
+							</p>
+						</div>
+					</DialogDescription>
 				</DialogContent>
 			</Dialog>
 		</>

@@ -23,7 +23,7 @@ import { useImageProcessingStore } from '@/lib/store/image-process.store';
 import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
-	image: z.instanceof(File).optional(),
+	image: typeof File === 'undefined' ? z.any() : z.instanceof(File).optional(),
 });
 
 const ImageSvgDraw = () => {

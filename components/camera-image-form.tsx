@@ -13,6 +13,7 @@ import {
 import { CameraIcon, ImageIcon, UploadIcon, XIcon } from 'lucide-react';
 import { useImageProcessingStore } from '@/lib/store/image-process.store';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 type FormData = {
 	photo: File | null;
@@ -106,7 +107,13 @@ const CameraImage = ({
 					/>
 				)}
 				{preview && (
-					<img src={preview} alt="Captured" className="w-full h-auto" />
+					<Image
+						src={preview}
+						alt="Captured"
+						className="w-full h-auto"
+						width={500}
+						height={500}
+					/>
 				)}
 				{!stream && !preview && (
 					<div className="w-full h-48 flex flex-col items-center justify-center">

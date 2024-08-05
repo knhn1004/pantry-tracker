@@ -22,6 +22,7 @@ import {
 import { toast } from 'sonner';
 import { Trash2 as RemoveIcon } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
+import Image from 'next/image';
 
 const FilePreview = ({ file }: { file: File }) => {
 	const [preview, setPreview] = useState<string | null>(null);
@@ -39,10 +40,12 @@ const FilePreview = ({ file }: { file: File }) => {
 
 	return (
 		<div className="relative w-10 h-10 mr-2">
-			<img
+			<Image
 				src={preview}
 				alt="File preview"
 				className="w-full h-full object-cover rounded"
+				width={500}
+				height={500}
 			/>
 		</div>
 	);
@@ -113,6 +116,59 @@ export const FileUploader = forwardRef<
 		const reSelectAll = maxFiles === 1 ? true : reSelect;
 		const direction: DirectionOptions = dir === 'rtl' ? 'rtl' : 'ltr';
 
+		const opts = dropzoneOptions
+			? dropzoneOptions
+			: { accept, maxFiles, maxSize, multiple };
+
+		const onDrop = useCallback(
+			(acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+				const files = acceptedFiles;
+
+				if (!files) {
+					toast.error('file error , probably too big');
+					return;
+				}
+
+				let newValues: File[] = [];
+
+				if (maxFiles === 1) {
+					// If maxFiles is 1, always replace the existing file
+					newValues = files.slice(0, 1);
+				} else {
+					// For multiple files, append to existing files up to maxFiles
+					newValues = value ? [...value] : [];
+					files.forEach(file => {
+						if (newValues.length < maxFiles) {
+							newValues.push(file);
+						}
+					});
+				}
+
+				onValueChange(newValues);
+
+				if (rejectedFiles.length > 0) {
+					for (let i = 0; i < rejectedFiles.length; i++) {
+						if (rejectedFiles[i].errors[0]?.code === 'file-too-large') {
+							toast.error(
+								`File is too large. Max size is ${maxSize / 1024 / 1024}MB`
+							);
+							break;
+						}
+						if (rejectedFiles[i].errors[0]?.message) {
+							toast.error(rejectedFiles[i].errors[0].message);
+							break;
+						}
+					}
+				}
+			},
+			[value, maxFiles, maxSize, onValueChange]
+		);
+		const dropzoneState = useDropzone({
+			...opts,
+			onDrop,
+			onDropRejected: () => setIsFileTooBig(true),
+			onDropAccepted: () => setIsFileTooBig(false),
+		});
 		const removeFileFromSet = useCallback(
 			(i: number) => {
 				if (!value) return;
@@ -174,51 +230,14 @@ export const FileUploader = forwardRef<
 					setActiveIndex(-1);
 				}
 			},
-			[value, activeIndex, removeFileFromSet]
-		);
-
-		const onDrop = useCallback(
-			(acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-				const files = acceptedFiles;
-
-				if (!files) {
-					toast.error('file error , probably too big');
-					return;
-				}
-
-				let newValues: File[] = [];
-
-				if (maxFiles === 1) {
-					// If maxFiles is 1, always replace the existing file
-					newValues = files.slice(0, 1);
-				} else {
-					// For multiple files, append to existing files up to maxFiles
-					newValues = value ? [...value] : [];
-					files.forEach(file => {
-						if (newValues.length < maxFiles) {
-							newValues.push(file);
-						}
-					});
-				}
-
-				onValueChange(newValues);
-
-				if (rejectedFiles.length > 0) {
-					for (let i = 0; i < rejectedFiles.length; i++) {
-						if (rejectedFiles[i].errors[0]?.code === 'file-too-large') {
-							toast.error(
-								`File is too large. Max size is ${maxSize / 1024 / 1024}MB`
-							);
-							break;
-						}
-						if (rejectedFiles[i].errors[0]?.message) {
-							toast.error(rejectedFiles[i].errors[0].message);
-							break;
-						}
-					}
-				}
-			},
-			[reSelectAll, value]
+			[
+				value,
+				activeIndex,
+				removeFileFromSet,
+				direction,
+				dropzoneState.inputRef,
+				orientation,
+			]
 		);
 
 		useEffect(() => {
@@ -229,17 +248,6 @@ export const FileUploader = forwardRef<
 			}
 			setIsLOF(false);
 		}, [value, maxFiles]);
-
-		const opts = dropzoneOptions
-			? dropzoneOptions
-			: { accept, maxFiles, maxSize, multiple };
-
-		const dropzoneState = useDropzone({
-			...opts,
-			onDrop,
-			onDropRejected: () => setIsFileTooBig(true),
-			onDropAccepted: () => setIsFileTooBig(false),
-		});
 
 		return (
 			<FileUploaderContext.Provider
@@ -289,7 +297,7 @@ export const FileUploaderContent = forwardRef<
 		<div
 			className={cn('w-full px-1')}
 			ref={containerRef}
-			aria-description="content file holder"
+			aria-label="content file holder"
 		>
 			<div
 				{...props}
