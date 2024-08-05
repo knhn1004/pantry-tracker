@@ -11,6 +11,8 @@ import {
 	CardTitle,
 } from '@/components/ui/card';
 import { CameraIcon, ImageIcon, UploadIcon, XIcon } from 'lucide-react';
+import { useImageProcessingStore } from '@/lib/store/image-process.store';
+import { useRouter } from 'next/navigation';
 
 type FormData = {
 	photo: File | null;
@@ -26,6 +28,7 @@ const CameraImage = ({
 	const [preview, setPreview] = useState<string | null>(null);
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const { setProcessing } = useImageProcessingStore();
 
 	useEffect(() => {
 		if (videoRef.current && stream) {
@@ -77,10 +80,14 @@ const CameraImage = ({
 		setPreview(null);
 		setValue('photo', null);
 	};
+	const router = useRouter();
 
 	const onSubmit = async (data: FormData) => {
 		if (!data.photo) return;
+		setProcessing(true);
 		await processFunc(data.photo);
+		setProcessing(false);
+		router.push('/inventory');
 	};
 
 	return (

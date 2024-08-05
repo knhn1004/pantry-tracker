@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/form';
 import { useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useImageProcessingStore } from '@/lib/store/image-process.store';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
 	image: z.instanceof(File).optional(),
@@ -56,13 +58,16 @@ export function ImageUpload({
 		maxSize: 1024 * 1024 * 4, // 4MB
 		accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.gif'] },
 	};
+	const setProcessing = useImageProcessingStore(state => state.setProcessing);
 
+	const router = useRouter();
 	const onSubmit = async (values: z.infer<typeof formSchema>) => {
 		if (values.image) {
-			// TODO: Implement your image upload logic here
-			console.log('Uploading file:', values.image);
 			if (!values.image) return;
+			setProcessing(true);
 			await processFunc(values.image);
+			setProcessing(false);
+			router.push('/inventory');
 		}
 	};
 
