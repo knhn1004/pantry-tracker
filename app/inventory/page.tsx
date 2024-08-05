@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import InventoryTable from './inventory-table'; // This will be our client component
-import { Camera, PlusCircle } from 'lucide-react';
-import NewFeatures from './new-features';
+import { Camera, PlusCircle, ScanLine } from 'lucide-react';
 
 export default async function Inventory() {
 	const itemsWithInventory = await fetchItemsWithInventory();
@@ -38,7 +37,12 @@ export default async function Inventory() {
 							Add New
 						</Button>
 					</Link>
-					<NewFeatures />
+					<Link href="/inventory/receipt-ocr">
+						<Button className="ml-2" variant="outline">
+							<ScanLine className="mr-2 h-4 w-4" />
+							Scan Receipt
+						</Button>
+					</Link>
 					<Link href="/inventory/image-recognition">
 						<Button className="ml-2" variant="outline">
 							<Camera className="mr-2 h-4 w-4" />
