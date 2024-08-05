@@ -102,13 +102,80 @@ serve(async req => {
 		}
 
 		const result = await apiResponse.json();
-		const item = result.json.item;
-		console.log(result);
+		const { item, quantity, unit } = result.json;
+		// Check if unit exists in units table
+		let { data: unitData, error: unitError } = await supabase
+			.from('units')
+			.select('id')
+			.eq('name', unit)
+			.single();
 
-		return new Response(JSON.stringify({ success: true, item }), {
-			headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-			status: 200,
-		});
+		if (unitError && unitError.code !== 'PGRST116') {
+			throw unitError;
+		}
+
+		let unitId;
+		if (!unitData) {
+			// Create new unit if it doesn't exist
+			const { data: newUnit, error: newUnitError } = await supabase
+				.from('units')
+				.insert({ name: unit, user_id: userId })
+				.select()
+				.single();
+
+			if (newUnitError) throw newUnitError;
+			unitId = newUnit.id;
+		} else {
+			unitId = unitData.id;
+		}
+
+		// Check if item exists in items table
+		const { data: itemData, error: itemError } = await supabase
+			.from('items')
+			.select('id')
+			.eq('name', item)
+			.single();
+
+		if (itemError && itemError.code !== 'PGRST116') {
+			throw itemError;
+		}
+
+		let itemId;
+		if (!itemData) {
+			// Create new item if it doesn't exist
+			const { data: newItem, error: newItemError } = await supabase
+				.from('items')
+				.insert({ name: item, user_id: userId })
+				.select()
+				.single();
+
+			if (newItemError) throw newItemError;
+			itemId = newItem.id;
+		} else {
+			itemId = itemData.id;
+		}
+
+		// Create inventory entry
+		const { data: inventoryData, error: inventoryError } = await supabase
+			.from('inventory')
+			.insert({
+				user_id: userId,
+				item_id: itemId,
+				unit_id: unitId,
+				quantity: quantity,
+			})
+			.select()
+			.single();
+
+		if (inventoryError) throw inventoryError;
+
+		return new Response(
+			JSON.stringify({ success: true, data: inventoryData }),
+			{
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+				status: 200,
+			}
+		);
 	} catch (error) {
 		return new Response(
 			JSON.stringify({ success: false, error: error.message }),

@@ -148,7 +148,7 @@
         ],
         "inputAnchors": [],
         "inputs": {
-          "template": "Given the image of a food inventory item, identify the prominent object",
+          "template": "Given the image of a food inventory item, identify the prominent object.\nAlso label quantity and unit.",
           "promptValues": "{}"
         },
         "outputAnchors": [
@@ -249,7 +249,7 @@
         "inputAnchors": [],
         "inputs": {
           "autofixParser": true,
-          "jsonStructure": "[{\"property\":\"item\",\"type\":\"string\",\"description\":\"food inventory name\",\"actions\":\"\",\"id\":1}]"
+          "jsonStructure": "[{\"property\":\"item\",\"type\":\"string\",\"description\":\"food inventory name\",\"actions\":\"\",\"id\":0},{\"property\":\"quantity\",\"type\":\"number\",\"description\":\"quantity of the food inventory based on unit\",\"actions\":\"\",\"id\":1},{\"property\":\"unit\",\"type\":\"string\",\"description\":\"unit for this inventory, use unit we use in kitchen for recipes\",\"actions\":\"\",\"id\":2}]"
         },
         "outputAnchors": [
           {
