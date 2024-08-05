@@ -19,7 +19,7 @@ export default function Header() {
 	const [menuHeight, setMenuHeight] = useState(0);
 	const menuRef = useRef<HTMLDivElement>(null);
 
-	const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+	const toggleMenu = () => setIsMenuOpen(prev => !prev);
 
 	useEffect(() => {
 		if (menuRef.current) {
@@ -110,6 +110,7 @@ export default function Header() {
 							key={item.href}
 							href={item.href}
 							className="text-sm font-medium transition-colors hover:text-primary"
+							onClick={toggleMenu}
 						>
 							{item.label}
 						</Link>
