@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
 	ColumnDef,
 	flexRender,
@@ -29,10 +29,12 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Trash2, Carrot } from 'lucide-react';
+import { ChevronDown, Trash2, Carrot, RefreshCw } from 'lucide-react';
 import UseItemDialog from './use-item-dialog';
 import TrashItemDialog from './trash-item-dialog';
 import { consumeInventoryItem, removeInventoryItem } from '@/lib/actions/items';
+import { revalidateInventory } from '@/lib/actions/revalidate';
+import { toast } from '@/components/ui/use-toast';
 
 export type InventoryItem = {
 	id: string;
@@ -48,11 +50,28 @@ export default function InventoryTable({ data }: { data: InventoryItem[] }) {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = useState({});
+	const [refreshing, setRefreshing] = useState(false);
 
 	// use item dialog & remove item dialog
 	const [isUseDialogOpen, setIsUseDialogOpen] = useState(false);
 	const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
 	const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+
+	const handleRefresh = async () => {
+		setRefreshing(true);
+		// Simulate a delay for refreshing
+		await revalidateInventory();
+		setRefreshing(false);
+	};
+
+	useEffect(() => {
+		if (refreshing) {
+			toast({
+				title: 'Refreshing inventory...',
+				description: 'Please wait a moment.',
+			});
+		}
+	}, [refreshing]);
 
 	const columns: ColumnDef<InventoryItem>[] = [
 		{
@@ -174,6 +193,14 @@ export default function InventoryTable({ data }: { data: InventoryItem[] }) {
 					}
 					className="max-w-sm"
 				/>
+				<Button
+					variant="outline"
+					size="icon"
+					onClick={handleRefresh}
+					className="ml-2"
+				>
+					<RefreshCw className="h-4 w-4" />
+				</Button>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button variant="outline" className="ml-auto">
