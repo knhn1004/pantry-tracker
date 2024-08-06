@@ -61,7 +61,7 @@ export default async function RecipePage({
 					</BreadcrumbItem>
 					<BreadcrumbSeparator />
 					<BreadcrumbItem>
-						<BreadcrumbPage>{recipe.name}</BreadcrumbPage>
+						<BreadcrumbPage>{recipe?.name}</BreadcrumbPage>
 					</BreadcrumbItem>
 				</BreadcrumbList>
 			</Breadcrumb>
@@ -90,7 +90,7 @@ export default async function RecipePage({
 						{recipe.recipe_ingredients.map((ingredient, index) => (
 							<li key={index}>
 								{ingredient.quantity} {ingredient.units?.name}{' '}
-								{ingredient.items.name}
+								{ingredient.items?.name}
 							</li>
 						))}
 					</ul>
